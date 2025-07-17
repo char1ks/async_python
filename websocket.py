@@ -20,13 +20,16 @@ connections = 0
 total_messages = 0
 message_timestamps = deque()
 
-# TODO: Реализовать функцию мониторинга
+# Мониторинг RPS
 async def monitor():
     global message_timestamps, total_messages, connections
     while True:
-        # TODO: Очистить устаревшие метки времени (старше 1 секунды)
-        # TODO: Вывести статистику RPS, соединений и сообщений
-        print(f"[{datetime.datetime.now()}] RPS: ? | Total connections: {connections} | Total messages: {total_messages}")
+        now = time.time()
+        # Очищаем устаревшие метки времени старше 1 секунды
+        while message_timestamps and message_timestamps[0] < now - 1:
+            message_timestamps.popleft()
+
+        print(f"[{datetime.datetime.now()}] RPS: {len(message_timestamps)} | Total connections: {connections} | Total messages: {total_messages}")
         await asyncio.sleep(1)
 
 # TODO: Реализовать обработчик соединений
@@ -36,11 +39,9 @@ async def handle(websocket):
     print(f"[{datetime.datetime.now()}] New connection. Total connections: {connections}")
 
     try:
-        # TODO: Обработать входящие сообщения
-        # TODO: Подсчитать сообщения и RPS
-        # TODO: Отправить эхо ответ
         async for message in websocket:
-            print(f"Received: {message}")
+            total_messages += 1
+            message_timestamps.append(time.time())
             await websocket.send(f"Echo: {message}")
     except Exception as e:
         print(f"[{datetime.datetime.now()}] Error: {e}")
@@ -48,9 +49,8 @@ async def handle(websocket):
         connections -= 1
         print(f"[{datetime.datetime.now()}] Connection closed. Total connections: {connections}")
 
-# TODO: Реализовать основную функцию запуска
+# Основной запуск сервера
 async def main():
-    # TODO: Запустить WebSocket сервер и мониторинг
     async with websockets.serve(handle, "0.0.0.0", 8765):
         print(f"[{datetime.datetime.now()}] WebSocket server started at ws://0.0.0.0:8765")
         await asyncio.gather(monitor())
