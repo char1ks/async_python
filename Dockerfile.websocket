@@ -1,0 +1,22 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Устанавливаем системные утилиты для мониторинга
+RUN apt-get update && apt-get install -y \
+    htop \
+    procps \
+    net-tools \
+    && rm -rf /var/lib/apt/lists/*
+
+# Устанавливаем Python зависимости
+RUN pip install --no-cache-dir websockets
+
+# Копируем файл сервера
+COPY websocket.py /app/
+
+# Открываем порт
+EXPOSE 8765
+
+# Команда по умолчанию
+CMD ["python", "websocket.py"] 

@@ -1,0 +1,12 @@
+FROM node:18-slim
+
+WORKDIR /app
+
+# Устанавливаем Artillery глобально
+RUN npm install -g artillery
+
+# Копируем конфигурационный файл для Docker
+COPY test_config_docker.yml /app/test_config.yml
+
+# Команда по умолчанию для запуска тестов
+CMD ["artillery", "run", "test_config.yml"] 

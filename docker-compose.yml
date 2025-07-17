@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  websocket-server:
+    build: 
+      context: .
+      dockerfile: Dockerfile.websocket
+    ports:
+      - "8765:8765"
+    volumes:
+      - ./websocket.py:/app/websocket.py
+    environment:
+      - PYTHONUNBUFFERED=1
+    container_name: websocket_server
+    networks:
+      - websocket_network
+
+  artillery-tester:
+    build:
+      context: .
+      dockerfile: Dockerfile.artillery
+    volumes:
+      - ./test_config.yml:/app/test_config.yml
+    depends_on:
+      - websocket-server
+    container_name: artillery_tester
+    networks:
+      - websocket_network
+    profiles:
+      - testing
+
+  monitoring:
+    image: nicolargo/glances:latest
+    pid: host
+    ports:
+      - "61208:61208"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - GLANCES_OPT=-w
+    container_name: monitoring
+    profiles:
+      - monitoring
+
+networks:
+  websocket_network:
+    driver: bridge 
